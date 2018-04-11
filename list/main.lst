@@ -1,0 +1,140 @@
+C51 COMPILER V9.00   MAIN                                                                  04/11/2018 14:39:41 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\list\main.obj
+COMPILER INVOKED BY: D:\工具\Keil 4\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND PRINT(.\list\main.lst) OBJECT(.\lis
+                    -t\main.obj)
+
+line level    source
+
+   1          
+   2          /*------------------------------------------------------------------*/
+   3          /* --- STC MCU International Limited -------------------------------*/
+   4          /* --- STC 1T Series MCU RC Demo -----------------------------------*/
+   5          /* --- Mobile: (86)13922805190 -------------------------------------*/
+   6          /* --- Fax: 86-0513-55012956,55012947,55012969 ---------------------*/
+   7          /* --- Tel: 86-0513-55012928,55012929,55012966 ---------------------*/
+   8          /* --- Web: www.GXWMCU.com -----------------------------------------*/
+   9          /* --- QQ:  800003751 ----------------------------------------------*/
+  10          /* If you want to use the program or the program referenced in the  */
+  11          /* article, please specify in which data and procedures from STC    */
+  12          /*------------------------------------------------------------------*/
+  13          
+  14          #include        "config.h"
+  15          #include        "timer.h"
+  16          #include        "GPIO.h"
+  17          
+  18          /*************  功能说明        **************
+  19          
+  20          本程序演示3个定时器的使用。
+  21          
+  22          定时器0做16位自动重装10us定时，不中断，从P3.5高速输出50KHZ时钟信号。
+  23              用户可以修改时间从而修改频率，也可以允许中断，但注意时间不要太短（一般10us以上）。
+  24          
+  25          定时器1做16位自动重装1ms定时， 中断，从P3.4高速输出500HZ时钟信号。
+  26          
+  27          定时器2做16位自动重装20ms定时，中断，从P3.0高速输出25HZ时钟信号。同时中断里从P1.0取反输出25HZ时钟信号。
+  28          
+  29          ******************************************/
+  30          
+  31          /*************  本地常量声明    **************/
+  32          
+  33          
+  34          /*************  本地变量声明    **************/
+  35          
+  36          
+  37          /*************  本地函数声明    **************/
+  38          
+  39          
+  40          
+  41          /*************  外部函数和变量声明 *****************/
+  42          
+  43          
+  44          
+  45          /************************ IO口配置 ****************************/
+  46           
+  47          unsigned char pwm[9]={100,100,100,100,100,100,100,100,100};     //50--250
+  48          unsigned int times=0;
+  49          
+  50          void    GPIO_config(void)
+  51          {
+  52   1              GPIO_InitTypeDef        GPIO_InitStructure;                             //结构定义
+  53   1              GPIO_InitStructure.Pin  = 0xff; //指定要初始化的IO, GPIO_Pin_0 ~ GPIO_Pin_7, 或操作
+  54   1              GPIO_InitStructure.Mode = GPIO_OUT_PP;                          //指定IO的输入或输出方式,GPIO_PullUp,GPIO_HighZ,GPIO_OUT_OD,GPI
+C51 COMPILER V9.00   MAIN                                                                  04/11/2018 14:39:41 PAGE 2   
+
+             -O_OUT_PP
+  55   1              GPIO_Inilize(GPIO_P1,&GPIO_InitStructure);                      //初始化
+  56   1      }
+  57          
+  58          /************************ 定时器配置 ****************************/
+  59          void    Timer_config(void)
+  60          {
+  61   1              TIM_InitTypeDef         TIM_InitStructure;                                      //结构定义
+  62   1              TIM_InitStructure.TIM_Mode      = TIM_16BitAutoReload;  //指定工作模式,   TIM_16BitAutoReload,TIM_16Bit,TI
+             -M_8BitAutoReload,TIM_16BitAutoReloadNoMask
+  63   1              TIM_InitStructure.TIM_Polity    = PolityLow;                    //指定中断优先级, PolityHigh,PolityLow
+  64   1              TIM_InitStructure.TIM_Interrupt = ENABLE;                               //中断是否允许,   ENABLE或DISABLE
+  65   1              TIM_InitStructure.TIM_ClkSource = TIM_CLOCK_12T;                        //指定时钟源,     TIM_CLOCK_1T,TIM_CLOCK_12T,TIM_CLOCK
+             -_Ext
+  66   1              TIM_InitStructure.TIM_ClkOut    = ENABLE;                               //是否输出高速脉冲, ENABLE或DISABLE
+  67   1              TIM_InitStructure.TIM_Value     = 65536UL - (MAIN_Fosc / 1176200UL);            //初值,
+  68   1              TIM_InitStructure.TIM_Run       = ENABLE;                               //是否初始化后启动定时器, ENABLE或DISABLE
+  69   1              Timer_Inilize(Timer0,&TIM_InitStructure);                               //初始化Timer0    Timer0,Timer1,Timer2
+  70   1      
+  71   1      //      TIM_InitStructure.TIM_Mode      = TIM_16BitAutoReload;  //指定工作模式,   TIM_16BitAutoReload,TIM_16Bit,
+             -TIM_8BitAutoReload,TIM_16BitAutoReloadNoMask
+  72   1      //      TIM_InitStructure.TIM_Polity    = PolityLow;                    //指定中断优先级, PolityHigh,PolityLow
+  73   1      //      TIM_InitStructure.TIM_Interrupt = ENABLE;                               //中断是否允许,   ENABLE或DISABLE
+  74   1      //      TIM_InitStructure.TIM_ClkSource = TIM_CLOCK_1T;                 //指定时钟源, TIM_CLOCK_1T,TIM_CLOCK_12T,TIM_CLOCK_Ex
+             -t
+  75   1      //      TIM_InitStructure.TIM_ClkOut    = ENABLE;                               //是否输出高速脉冲, ENABLE或DISABLE
+  76   1      //      TIM_InitStructure.TIM_Value     = 65536UL - (MAIN_Fosc / 1000);         //初值,
+  77   1      //      TIM_InitStructure.TIM_Run       = ENABLE;                               //是否初始化后启动定时器, ENABLE或DISABLE
+  78   1      //      Timer_Inilize(Timer1,&TIM_InitStructure);                               //初始化Timer1    Timer0,Timer1,Timer2
+  79   1      //
+  80   1      //      TIM_InitStructure.TIM_Interrupt = ENABLE;                               //中断是否允许,   ENABLE或DISABLE. (注意: Timer2固定为16位
+             -自动重装, 中断固定为低优先级)
+  81   1      //      TIM_InitStructure.TIM_ClkSource = TIM_CLOCK_12T;                //指定时钟源,     TIM_CLOCK_1T,TIM_CLOCK_12T,TIM_CLOC
+             -K_Ext
+  82   1      //      TIM_InitStructure.TIM_ClkOut    = ENABLE;                               //是否输出高速脉冲, ENABLE或DISABLE
+  83   1      //      TIM_InitStructure.TIM_Value     = 65536UL - (MAIN_Fosc / (50*12));              //初值
+  84   1      //      TIM_InitStructure.TIM_Run       = ENABLE;                               //是否初始化后启动定时器, ENABLE或DISABLE
+  85   1      //      Timer_Inilize(Timer2,&TIM_InitStructure);                               //初始化Timer2    Timer0,Timer1,Timer2
+  86   1      }
+  87          
+  88          
+  89          /******************** 主函数**************************/
+  90          void main(void)
+  91          {
+  92   1      
+  93   1              GPIO_config();
+  94   1              Timer_config();
+  95   1              EA = 1;
+  96   1               pwm[2]=150;
+  97   1               pwm[5]=200;
+  98   1              while (1)
+  99   1              {
+ 100   2      
+ 101   2              }
+ 102   1      }
+ 103          
+ 104          
+ 105          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     65    ----
+C51 COMPILER V9.00   MAIN                                                                  04/11/2018 14:39:41 PAGE 3   
+
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11      10
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
